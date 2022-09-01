@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "pybundle"
+version = "0.1.0"
+description = ""
+authors = ["thautwarm <twshere@outlook.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pretty-doc = "^0.3"
+ast-compat = "^0.11.1"
+wisepy2 = "^1.3"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+pybundle = 'pybundle.bundle:CLI'
