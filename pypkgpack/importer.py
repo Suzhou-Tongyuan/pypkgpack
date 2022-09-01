@@ -22,17 +22,21 @@ except IOError:
 
 
 bundled_resources: dict[str, tuple[bool, list[bytes]]] = {}
-PYTHON_VERSION = '.'.join(map(str, sys.version_info[:3]))
+PYTHON_VERSION = ".".join(map(str, sys.version_info[:3]))
+
 
 def register_code_resource(name: str, is_package: bool, *codes: bytes):
     if name in bundled_resources:
         old_is_package, old_codes = bundled_resources[name]
         old_codes.extend(codes)
         if old_is_package is not is_package:
-            warnings.warn(f"{name} has been asked to be {'package' if old_is_package else 'module'}")
+            warnings.warn(
+                f"{name} has been asked to be {'package' if old_is_package else 'module'}"
+            )
             bundled_resources[name] = is_package, old_codes
     else:
         bundled_resources[name] = (is_package, list(codes))
+
 
 class BundledSourceLoader(Loader):
     def __init__(self, is_package: bool, fullname: str, source_codes: list[bytes]):
@@ -48,15 +52,19 @@ class BundledSourceLoader(Loader):
             module.__package__ = module.__name__
             module.__path__ = []
         else:
-            module.__package__ = '.'.join(module.__name__.split('.')[:-1])
+            module.__package__ = ".".join(module.__name__.split(".")[:-1])
         return module
 
     def compile_module(self, source_codes: list[bytes]):
         code_objects: list[types.CodeType] = []
+
         def do_compile():
             for src in source_codes:
-                src = base64.b64decode(src).decode('utf-8')
-                code_objects.append(compile(src, f"<bundled module {self.fullname}>", 'exec'))
+                src = base64.b64decode(src).decode("utf-8")
+                code_objects.append(
+                    compile(src, f"<bundled module {self.fullname}>", "exec")
+                )
+
         if BYTECODE_CACHE_DIR is None:
             # NO cache dir available
             do_compile()
@@ -64,21 +72,21 @@ class BundledSourceLoader(Loader):
             md5 = 1192634
             for source_code in source_codes:
                 digest = hashlib.md5(source_code).hexdigest().encode()
-                md5 ^= int.from_bytes(digest, 'little', signed=False)
+                md5 ^= int.from_bytes(digest, "little", signed=False)
             hexdigest = hex(md5).encode()
             cache_file = BYTECODE_CACHE_DIR / (self.fullname + "@" + PYTHON_VERSION)
             if cache_file.exists() and cache_file.is_file():
-                with cache_file.open('rb') as f:
+                with cache_file.open("rb") as f:
                     cache_contents = f.read()
             else:
-                cache_contents = b''
+                cache_contents = b""
             if cache_contents.startswith(hexdigest):
-                code_objects.extend(marshal.loads(cache_contents[len(hexdigest):]))
+                code_objects.extend(marshal.loads(cache_contents[len(hexdigest) :]))
             else:
                 do_compile()
                 try:
                     cache_file.parent.mkdir(mode=0o777, parents=True, exist_ok=True)
-                    with cache_file.open('wb') as f:
+                    with cache_file.open("wb") as f:
                         f.write(hexdigest)
                         f.write(marshal.dumps(code_objects))
                 except IOError:
@@ -90,10 +98,14 @@ class BundledSourceLoader(Loader):
         for code_object in code_objects:
             exec(code_object, module.__dict__)
 
+
 class BundledSourceFinder(MetaPathFinder):
     def find_spec(self, fullname: str, path, target=None):
         if fullname in bundled_resources:
             is_package, codes = bundled_resources[fullname]
-            return ModuleSpec(fullname, BundledSourceLoader(is_package, fullname, codes))
+            return ModuleSpec(
+                fullname, BundledSourceLoader(is_package, fullname, codes)
+            )
+
 
 sys.meta_path.insert(0, BundledSourceFinder())

@@ -1,11 +1,11 @@
-## PyBundle
+## PyPkgPack
 
 Bundling a Python package into a single Python file.
 
 Usage:
 
 ```shell
-> pybundle /path/to/mypackage --out bundled_package.py
+> pypkgpack /path/to/mypackage --out bundled_package.py
 
 > python
 
