@@ -20,34 +20,41 @@ except IOError:
     # in case no permission
     BYTECODE_CACHE_DIR = None
 
-
-bundled_resources: dict[str, tuple[bool, list[bytes]]] = {}
+FILE_PATH = str
+IS_PACKAGE = bool
+bundled_resources: dict[str, tuple[IS_PACKAGE, FILE_PATH, list[bytes]]] = {}
 PYTHON_VERSION = ".".join(map(str, sys.version_info[:3]))
 
 
-def register_code_resource(name: str, is_package: bool, *codes: bytes):
+def register_code_resource(name: str, is_package: bool, filepath: str, *codes: bytes):
     if name in bundled_resources:
-        old_is_package, old_codes = bundled_resources[name]
+        old_is_package, old_filepath, old_codes = bundled_resources[name]
         old_codes.extend(codes)
+        if filepath != old_filepath:
+            warnings.warn(f"multiple '__file__' found for module {name}")
         if old_is_package is not is_package:
             warnings.warn(
                 f"{name} has been asked to be {'package' if old_is_package else 'module'}"
             )
-            bundled_resources[name] = is_package, old_codes
+            bundled_resources[name] = is_package, old_filepath, old_codes
     else:
-        bundled_resources[name] = (is_package, list(codes))
+        bundled_resources[name] = (is_package, filepath, list(codes))
 
 
 class BundledSourceLoader(Loader):
-    def __init__(self, is_package: bool, fullname: str, source_codes: list[bytes]):
+    def __init__(
+        self, is_package: bool, fullname: str, filepath: str, source_codes: list[bytes]
+    ):
         self.fullname = fullname
         self.source_codes = source_codes
         self.is_package = is_package
+        self.filepath = filepath
 
     def create_module(self, spec: ModuleSpec) -> types.ModuleType | None:
         module = types.ModuleType(self.fullname)
         module.__name__ = self.fullname
         module.__loader__ = self
+        module.__file__ = self.filepath
         if self.is_package:
             module.__package__ = module.__name__
             module.__path__ = []
@@ -81,7 +88,6 @@ class BundledSourceLoader(Loader):
             else:
                 cache_contents = b""
             if cache_contents.startswith(hexdigest):
-                print("precompiled")
                 code_objects.extend(marshal.loads(cache_contents[len(hexdigest) :]))
             else:
                 do_compile()
@@ -103,9 +109,12 @@ class BundledSourceLoader(Loader):
 class BundledSourceFinder(MetaPathFinder):
     def find_spec(self, fullname: str, path, target=None):
         if fullname in bundled_resources:
-            is_package, codes = bundled_resources[fullname]
+            is_package, filepath, codes = bundled_resources[fullname]
             return ModuleSpec(
-                fullname, BundledSourceLoader(is_package, fullname, codes)
+                fullname,
+                BundledSourceLoader(
+                    is_package, fullname=fullname, filepath=filepath, source_codes=codes
+                ),
             )
 
 

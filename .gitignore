@@ -4,3 +4,4 @@ generated*.py
 .coverage
 coverage.xml
 htmlcov/
+dist/

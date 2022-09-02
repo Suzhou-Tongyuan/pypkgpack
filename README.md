@@ -1,6 +1,11 @@
 ## PyPkgPack
 
-Bundling a Python package into a single Python file.
+[![CI](https://github.com/Suzhou-Tongyuan/pypkgpack/actions/workflows/ci.yml/badge.svg)](https://github.com/Suzhou-Tongyuan/pypkgpack/actions/workflows/ci.yml)
+![versions](https://img.shields.io/pypi/pyversions/pypkgpack.svg)
+![pypi](https://img.shields.io/pypi/v/pypkgpack.svg)
+[![License](https://img.shields.io/badge/License-BSD_2--Clause-green.svg)](https://github.com/Suzhou-Tongyuan/pypkgpack/blob/main/LICENSE)
+
+Bundling a pure Python package into a single Python file.
 
 Usage:
 
@@ -16,8 +21,11 @@ python> print(myfunction())
 
 Features:
 
-- [x] bundling a Python package into a single Python file.
-- [x] support caching bytecode compilation and cache invalidation.
-- [ ] support bundling binaries and assets.
-- [x] respect Python's import semantics.
-- [x] bundled modules need no extra dependencies.
+- [x] bundling a Python package into a single Python file
+- [x] caching bytecode compilation and cache invalidation
+- [x] fixing the missing `__init__.py`
+- [x] allow multiple source code implementations for the same module
+- [x] respect Python's import semantics
+- [x] bundled modules need no extra dependencies
+- [ ] support bundling binaries and assets
+- [ ] allow lazy imports

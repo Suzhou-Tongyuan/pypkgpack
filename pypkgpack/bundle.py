@@ -10,13 +10,21 @@ import io
 
 @dataclass
 class Context:
-    registered_sources: dict[str, tuple[bool, bytes]]
+    registered_sources: dict[str, tuple[bool, str, bytes]]
 
-    def register_module(self, path: list[str], source_code: str, *, is_package: bool):
-        if not path:
+    def register_module(
+        self,
+        module_path: list[str],
+        src_path: pathlib.Path,
+        source_code: str,
+        *,
+        is_package: bool,
+    ):
+        if not module_path:
             raise ValueError("a Python package is required!")
-        self.registered_sources[".".join(path)] = (
+        self.registered_sources[".".join(module_path)] = (
             is_package,
+            str(src_path),
             base64.b64encode(source_code.encode("utf-8")),
         )
 
@@ -41,7 +49,9 @@ def _traverse(
         if not name.isidentifier():
             return
         with _enter_path(current_module_path, name):
-            data.register_module(current_module_path, source, is_package=False)
+            data.register_module(
+                current_module_path, current_path, source, is_package=False
+            )
     elif current_path.is_dir() and current_path.name.isidentifier():
         if current_path.name == "__pycache__":
             return
@@ -50,9 +60,11 @@ def _traverse(
         with _enter_path(current_module_path, name):
             if entry.exists():
                 source = entry.read_text(encoding="utf-8")
-                data.register_module(current_module_path, source, is_package=True)
+                data.register_module(
+                    current_module_path, entry, source, is_package=True
+                )
             else:
-                data.register_module(current_module_path, "", is_package=True)
+                data.register_module(current_module_path, entry, "", is_package=True)
             for each in current_path.iterdir():
                 _traverse(current_module_path, each, data)
 
@@ -70,12 +82,13 @@ def CLI(projectdir: str, *, out: str, dynlinkloader: bool = False):
             (pathlib.Path(__file__).parent / "importer.py").read_text(encoding="utf-8")
         )
     buf.write("\n")
-    for fullname, (is_package, source_code) in ctx.registered_sources.items():
+    for fullname, (is_package, filepath, source_code) in ctx.registered_sources.items():
         node = ast.Call(
             ast.Name("register_code_resource", ctx=ast.Load()),
             [
                 ast.Constant(fullname),
                 ast.Constant(is_package),
+                ast.Constant(filepath),
                 ast.Constant(source_code),
             ],
         )
