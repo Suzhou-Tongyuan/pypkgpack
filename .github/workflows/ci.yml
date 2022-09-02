@@ -19,17 +19,24 @@ jobs:
       run:
         shell: bash
     steps:
-    - uses: actions/checkout@v2
+
+    - name: Checkout
+      uses: actions/checkout@v2
+
     - name: Setup Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
-        cache: 'pip' # caching pip dependencies
+
     - name: Install Poetry
       run: pip install poetry
+
     - run: |
+        poetry env use python
         poetry install
-        poetry run 'coverage run --source=pypkgpack -m pytest -s && coverage report && coverage xml'
+        pip install .
+        coverage run --source=pypkgpack -m pytest -s && coverage report && coverage xml
+
     - name: Python Cov
       uses: orgoro/coverage@v2
       with:
