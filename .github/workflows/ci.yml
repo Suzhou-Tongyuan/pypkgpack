@@ -1,15 +1,35 @@
-runs-on: ubuntu-latest
-steps:
-- uses: actions/checkout@v3
-- uses: actions/setup-python@v4
-  with:
-    python-version: '3.9'
-    cache: 'poetry' # caching pip dependencies
-- run: |
-    poetry install
-    poetry run 'coverage run --source=pypkgpack -m pytest -s && coverage report && coverage xml'
-- name: Python Cov
-  uses: orgoro/coverage@v2
-  with:
-    coverageFile: coverage.xml
-    token: ${{ secrets.GITHUB_TOKEN }}
+name: CI
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        OS: [Ubuntu, macOS, Windows]
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
+        include:
+          - os: Ubuntu
+            image: ubuntu-22.04
+          - os: Windows
+            image: windows-2022
+          - os: macOS
+            image: macos-12
+      fail-fast: false
+    defaults:
+      run:
+        shell: bash
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'poetry' # caching pip dependencies
+    - run: |
+        poetry install
+        poetry run 'coverage run --source=pypkgpack -m pytest -s && coverage report && coverage xml'
+    - name: Python Cov
+      uses: orgoro/coverage@v2
+      with:
+        coverageFile: coverage.xml
+        token: ${{ secrets.GITHUB_TOKEN }}
