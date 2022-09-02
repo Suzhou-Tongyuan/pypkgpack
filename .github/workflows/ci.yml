@@ -31,15 +31,16 @@ jobs:
     - name: Install Poetry
       run: pip install poetry
 
-    - run: |
-        poetry env use python
+    - name: Test
+      run: |
         poetry install
         pip install .
         pip install pytest coverage
         coverage run --source=pypkgpack -m pytest -s && coverage report && coverage xml
 
     - name: Python Cov
-      uses: orgoro/coverage@v2
+      uses: codecov/codecov-action@v2
       with:
-        coverageFile: coverage.xml
+        files: coverage.xml
         token: ${{ secrets.GITHUB_TOKEN }}
+        verbose: true

@@ -23,7 +23,7 @@ def test_bundle():
             '--dynlinkloader'
         ]
     )
-    import tests.generated
+    exec(((Path(__file__).parent / "generated.py").absolute()).read_text(encoding='utf-8'))
     import package1
     import package1.module
     assert package1.g(10) == 20
@@ -54,7 +54,7 @@ def test_bundle():
         ]
     )
 
-    import tests.generated2
+    exec(((Path(__file__).parent / "generated2.py").absolute()).read_text(encoding='utf-8'))
     import package1
     import package1.module
 
