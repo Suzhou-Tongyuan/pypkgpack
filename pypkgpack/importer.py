@@ -69,7 +69,7 @@ class BundledSourceLoader(Loader):
             for src in source_codes:
                 src = base64.b64decode(src).decode("utf-8")
                 code_objects.append(
-                    compile(src, f"<bundled module {self.fullname}>", "exec")
+                    compile(src, self.filepath, "exec")
                 )
 
         if BYTECODE_CACHE_DIR is None:

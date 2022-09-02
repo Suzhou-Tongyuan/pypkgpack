@@ -70,10 +70,11 @@ def _traverse(
 
 
 @wisepy2.wise
-def CLI(projectdir: str, *, out: str, dynlinkloader: bool = False):
-    p = pathlib.Path(projectdir).absolute()
+def CLI(*packages_or_modules: str, out: str, dynlinkloader: bool = False):
     ctx = Context({})
-    _traverse([], p, ctx)
+    for package_or_module in packages_or_modules:
+        p = pathlib.Path(package_or_module).absolute()
+        _traverse([], p, ctx)
     buf = io.StringIO()
     if dynlinkloader:
         buf.write("from pypkgpack.importer import register_code_resource\n")
