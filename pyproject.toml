@@ -1,8 +1,9 @@
 [tool.poetry]
 name = "pypkgpack"
-version = "0.2.1"
-description = ""
+version = "0.2.2"
+description = "Bundling your Python project into a single Python file."
 authors = ["thautwarm <twshere@outlook.com>"]
+readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.7"

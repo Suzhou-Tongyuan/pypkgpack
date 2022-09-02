@@ -1,8 +1,8 @@
 ## PyPkgPack
 
 [![CI](https://github.com/Suzhou-Tongyuan/pypkgpack/actions/workflows/ci.yml/badge.svg)](https://github.com/Suzhou-Tongyuan/pypkgpack/actions/workflows/ci.yml)
-![versions](https://img.shields.io/pypi/pyversions/pypkgpack.svg)
-![pypi](https://img.shields.io/pypi/v/pypkgpack.svg)
+[![versions](https://img.shields.io/pypi/pyversions/pypkgpack.svg)](https://pypi.org/project/pypkgpack/#history)
+[![pypi](https://img.shields.io/pypi/v/pypkgpack.svg)](https://pypi.org/project/pypkgpack/)
 [![License](https://img.shields.io/badge/License-BSD_2--Clause-green.svg)](https://github.com/Suzhou-Tongyuan/pypkgpack/blob/main/LICENSE)
 
 Bundling a pure Python package into a single Python file.
