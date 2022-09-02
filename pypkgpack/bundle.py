@@ -58,14 +58,17 @@ def _traverse(
 
 
 @wisepy2.wise
-def CLI(projectdir: str, *, out: str):
+def CLI(projectdir: str, *, out: str, dynlinkloader: bool = False):
     p = pathlib.Path(projectdir).absolute()
     ctx = Context({})
     _traverse([], p, ctx)
     buf = io.StringIO()
-    buf.write(
-        (pathlib.Path(__file__).parent / "importer.py").read_text(encoding="utf-8")
-    )
+    if dynlinkloader:
+        buf.write("from pypkgpack.importer import register_code_resource\n")
+    else:
+        buf.write(
+            (pathlib.Path(__file__).parent / "importer.py").read_text(encoding="utf-8")
+        )
     buf.write("\n")
     for fullname, (is_package, source_code) in ctx.registered_sources.items():
         node = ast.Call(

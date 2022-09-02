@@ -11,7 +11,7 @@ import sys
 import os
 
 BYTECODE_CACHE_DIR: pathlib.Path | None = pathlib.Path(
-    os.getenv("PYBUNDLE_CACHE_PATH") or "~/.cache/pybundle"
+    os.getenv("PYBUNDLE_CACHE_PATH") or "~/.cache/pypkgpack"
 ).expanduser()
 
 try:
@@ -81,6 +81,7 @@ class BundledSourceLoader(Loader):
             else:
                 cache_contents = b""
             if cache_contents.startswith(hexdigest):
+                print("precompiled")
                 code_objects.extend(marshal.loads(cache_contents[len(hexdigest) :]))
             else:
                 do_compile()
