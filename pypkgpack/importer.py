@@ -10,7 +10,7 @@ import hashlib
 import sys
 import os
 
-__version__ = b"0.2.0"
+__version__ = b"0.4.0"
 
 BYTECODE_CACHE_DIR: pathlib.Path | None = pathlib.Path(
     os.getenv("PYBUNDLE_CACHE_PATH") or "~/.cache/pypkgpack"

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pypkgpack"
-version = "0.3.0"
+version = "0.4.0"
 description = "Bundling your Python project into a single Python file."
 authors = ["thautwarm <twshere@outlook.com>"]
 readme = "README.md"
