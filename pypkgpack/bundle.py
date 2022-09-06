@@ -19,9 +19,13 @@ class Context:
         source_code: str,
         *,
         is_package: bool,
+        rootpath: pathlib.Path,
     ):
         if not module_path:
             raise ValueError("a Python package is required!")
+
+        src_path = src_path.relative_to(rootpath)
+
         self.registered_sources[".".join(module_path)] = (
             is_package,
             str(src_path),
@@ -39,7 +43,10 @@ def _enter_path(xs: list[str], x: str):
 
 
 def _traverse(
-    current_module_path: list[str], current_path: pathlib.Path, data: Context
+    rootpath: pathlib.Path,
+    current_module_path: list[str],
+    current_path: pathlib.Path,
+    data: Context,
 ):
     if current_path.is_file() and current_path.suffix == ".py":
         if current_path.name == "__init__.py":
@@ -50,7 +57,11 @@ def _traverse(
             return
         with _enter_path(current_module_path, name):
             data.register_module(
-                current_module_path, current_path, source, is_package=False
+                current_module_path,
+                current_path,
+                source,
+                is_package=False,
+                rootpath=rootpath,
             )
     elif current_path.is_dir() and current_path.name.isidentifier():
         if current_path.name == "__pycache__":
@@ -61,20 +72,29 @@ def _traverse(
             if entry.exists():
                 source = entry.read_text(encoding="utf-8")
                 data.register_module(
-                    current_module_path, entry, source, is_package=True
+                    current_module_path,
+                    entry,
+                    source,
+                    is_package=True,
+                    rootpath=rootpath,
                 )
             else:
-                data.register_module(current_module_path, entry, "", is_package=True)
+                data.register_module(
+                    current_module_path, entry, "", is_package=True, rootpath=rootpath
+                )
             for each in current_path.iterdir():
-                _traverse(current_module_path, each, data)
+                _traverse(rootpath, current_module_path, each, data)
 
 
 @wisepy2.wise
 def CLI(*packages_or_modules: str, out: str, dynlinkloader: bool = False):
     ctx = Context({})
     for package_or_module in packages_or_modules:
+        rootpath = pathlib.Path(package_or_module).absolute()
+        if rootpath.is_file():
+            rootpath = rootpath.parent
         p = pathlib.Path(package_or_module).absolute()
-        _traverse([], p, ctx)
+        _traverse(rootpath, [], p, ctx)
     buf = io.StringIO()
     if dynlinkloader:
         buf.write("from pypkgpack.importer import register_code_resource\n")

@@ -10,6 +10,8 @@ import hashlib
 import sys
 import os
 
+__version__ = b"0.2.0"
+
 BYTECODE_CACHE_DIR: pathlib.Path | None = pathlib.Path(
     os.getenv("PYBUNDLE_CACHE_PATH") or "~/.cache/pypkgpack"
 ).expanduser()
@@ -50,11 +52,14 @@ class BundledSourceLoader(Loader):
         self.is_package = is_package
         self.filepath = filepath
 
+    def resolve_filepath(self):
+        return str(pathlib.Path(__file__).parent / self.filepath)
+
     def create_module(self, spec: ModuleSpec) -> types.ModuleType | None:
         module = types.ModuleType(self.fullname)
         module.__name__ = self.fullname
         module.__loader__ = self
-        module.__file__ = self.filepath
+        module.__file__ = self.resolve_filepath()
         if self.is_package:
             module.__package__ = module.__name__
             module.__path__ = []
@@ -68,15 +73,14 @@ class BundledSourceLoader(Loader):
         def do_compile():
             for src in source_codes:
                 src = base64.b64decode(src).decode("utf-8")
-                code_objects.append(
-                    compile(src, self.filepath, "exec")
-                )
+                code_objects.append(compile(src, self.filepath, "exec"))
 
         if BYTECODE_CACHE_DIR is None:
             # NO cache dir available
             do_compile()
         else:
             md5 = 1192634
+            md5 += int.from_bytes(__version__, "little", signed=False)
             for source_code in source_codes:
                 digest = hashlib.md5(source_code).hexdigest().encode()
                 md5 ^= int.from_bytes(digest, "little", signed=False)
